@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .upload-section {
+            text-align: center;
+        }
+
+        .upload-section input[type="file"] {
+            display: block;
+            margin: 20px auto;
+        }
+
+        .preview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Smart Waste Management</h1>
+    
+    <div class="upload-section">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="file" id="fileInput" accept="image/*" onchange="previewImage()">
+            <div class="preview" id="imagePreview">
+                <img id="previewImg" src="" alt="Image Preview">
+            </div>
+            <button type="button" onclick="uploadImage()">Upload & Classify</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+</div>
+
+<script>
+    function previewImage() {
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.style.display = 'block';
+                previewImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    function uploadImage() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select an image to upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('result').innerHTML = `<p>${data.error}</p>`;
+            } else {
+                document.getElementById('result').innerHTML = `
+                    <p><strong>Category:</strong> ${data.category}</p>
+                    <p><strong>Disposal Tip:</strong> ${data.disposal_tip}</p>
+                    <img src="${data.file_path}" alt="Waste Item" width="200">
+                `;
+            }
+        })
+        .catch(error => console.log('Error:', error));
+    }
+</script>
+
+</body>
+</html>
+
